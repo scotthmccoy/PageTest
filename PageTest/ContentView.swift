@@ -15,14 +15,14 @@ struct Shelf : Identifiable {
   var books: [Book]
 }
 
-struct Book : Identifiable {
+struct Book : Identifiable, Equatable {
   var id = UUID()
   var title: String
 
   var pages: [Page]
 }
 
-struct Page : Identifiable {
+struct Page : Identifiable, Equatable {
   var id = UUID()
   var content: String
 }
@@ -105,6 +105,10 @@ struct BookView: View {
                 }
             }
         }
+        .animation(.default, value: book.pages)
+        //.animation(.default, value:book)    //Only animates the first addition.
+        //.animation(Animation.easeInOut(duration: 1)) //Deprecated. Forces a weird long animation when displayed but *does* animate row additions.
+        
         .listStyle(GroupedListStyle())
         .navigationBarTitle(book.title)
     }
