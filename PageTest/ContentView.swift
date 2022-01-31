@@ -8,21 +8,21 @@
 import SwiftUI
 
 //MARK: Model
-struct Shelf {
+struct Shelf : Identifiable {
   var id = UUID()
   var title: String
 
   var books: [Book]
 }
 
-struct Book {
+struct Book : Identifiable {
   var id = UUID()
   var title: String
 
   var pages: [Page]
 }
 
-struct Page {
+struct Page : Identifiable {
   var id = UUID()
   var content: String
 }
@@ -36,6 +36,7 @@ struct PageTestApp: App {
             NavigationView {
                 ShelfView(Shelf(title:"My Shelf", books:[]))
             }
+            .navigationViewStyle(.stack)
         }
     }
 }
@@ -66,7 +67,7 @@ struct ShelfView: View {
                 }
             ) {
                 ForEach(Array(shelf.books.enumerated()), id: \.1.id) { (i, book) in
-                    NavigationLink("Book \(i)", destination: BookView(book: self.$shelf.books[i]))
+                    NavigationLink("Book \(i) - \(book.pages.count) pages", destination: BookView(book: self.$shelf.books[i]))
                 }
             }
         }
@@ -95,8 +96,8 @@ struct BookView: View {
                     }
                 }
             ) {
-                ForEach(Array(book.pages.enumerated()), id: \.1.id) { (i, page) in
-                    NavigationLink("Page \(i)", destination: PageView(page:$book.pages[i], pageNumber:i))
+                ForEach(Array($book.pages.enumerated()), id: \.1.id) { (i, $page) in
+                    NavigationLink("Page \(i): \(page.content)", destination: PageView(page:$page, pageNumber:i))
                 }
             }
         }
