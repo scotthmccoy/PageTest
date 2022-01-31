@@ -7,125 +7,82 @@
 
 import SwiftUI
 
-//MARK: Model
-struct Shelf : Identifiable {
-  var id = UUID()
-  var title: String
 
-  var books: [Book]
-}
+//From https://stackoverflow.com/questions/70596634/why-animation-doesnt-work-inside-a-child-view-passed-by-binding
 
-struct Book : Identifiable {
-  var id = UUID()
-  var title: String
-
-  var pages: [Page]
-}
-
-struct Page : Identifiable {
-  var id = UUID()
-  var content: String
-}
-
-
-//MARK: App
 @main
 struct PageTestApp: App {
     var body: some Scene {
         WindowGroup {
-            NavigationView {
-                ShelfView(Shelf(title:"My Shelf", books:[]))
-            }
-            .navigationViewStyle(.stack)
+            ContentView()
         }
     }
 }
 
 
-//MARK: ShelfView
-struct ShelfView: View {
-    @State private var shelf: Shelf {
-        didSet {
-            print("Shelf Changed")
+extension ContentView {
+    class ViewModel: ObservableObject {
+        @Published var users = [User]()
+
+        func createUser() {
+            users.append(User(times: []))
         }
     }
 
-    init(_ shelf: Shelf) {
-        _shelf = State<Shelf>(initialValue: shelf)
+    struct User: Equatable {
+        let name = UUID().uuidString
+        var times: [Date]
     }
+}
+
+struct ContentView: View {
+    @StateObject var vm = ViewModel()
 
     var body: some View {
-
-        List {
-            Section(header:
-                HStack {
-                    Text("Books")
-                    Spacer()
-                    Button("Add") {
-                        withAnimation {
-                            shelf.books.append(Book(title:"New Book", pages:[]))
-                        }
+        NavigationView {
+            List {
+                ForEach(vm.users.indices, id: \.self) { index in
+                    NavigationLink {
+                        UserView(user: $vm.users[index])
+                    } label: {
+                        Text(vm.users[index].name)
                     }
                 }
-            ) {
-                ForEach(Array(shelf.books.enumerated()), id: \.1.id) { (i, book) in
-                    NavigationLink("Book \(i) - \(book.pages.count) pages", destination: BookView(book: self.$shelf.books[i]))
+                .onDelete { offsets in
+                    vm.users.remove(atOffsets: offsets)
                 }
-            }
-        }
-        .listStyle(GroupedListStyle())
-        .navigationBarTitle(shelf.title)
-    }
-}
-
-
-//MARK: BookView
-struct BookView: View {
-    @Binding var book: Book {
-        didSet {
-            print("Book Changed")
-        }
-    }
-    
-    var body: some View {
-        List {
-            Section(header:
-                HStack {
-                    Text("Pages")
-                    Spacer()
-                    Button("Add Page") {
-                        withAnimation {
-                            book.pages.append(Page(content:"New Page"))
-                        }
+                Button("Add") {
+                    withAnimation {
+                        vm.createUser()
                     }
                 }
-            ) {
-                ForEach(Array($book.pages.enumerated()), id: \.1.id) { (i, $page) in
-                    NavigationLink("Page \(i): \(page.content)", destination: PageView(page:$page, pageNumber:i))
-                }
             }
+            .navigationTitle("Parent View")
         }
-        .listStyle(GroupedListStyle())
-        .navigationBarTitle(book.title)
     }
 }
 
-//MARK: PageView
-struct PageView: View {
-    @Binding var page:Page {
-        didSet {
-            print("Page Changed")
-        }
-    }
-    let pageNumber:Int
-    
+struct UserView: View {
+    @Binding var user: ContentView.User
+
     var body: some View {
         List {
-            Section("Edit Page") {
-                TextField("", text: $page.content)
+            ForEach(user.times.indices, id: \.self) { index in
+                Text(user.times[index].description)
             }
+            .onDelete { offsets in
+                user.times.remove(atOffsets: offsets)
+            }
+            Button {
+                withAnimation {
+                    user.times.append(Date())
+                }
+            } label: {
+               Text("Add Time")
+            }
+
         }
-        .listStyle(GroupedListStyle())
-        .navigationBarTitle("Page \(pageNumber)")
+        .navigationTitle("Child View")
     }
 }
+
