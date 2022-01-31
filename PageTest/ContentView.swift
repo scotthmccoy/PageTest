@@ -81,10 +81,12 @@ struct ShelfView: View {
 
 //MARK: BookView
 struct BookView: View {
-    @Binding var book: Book {
-        didSet {
-            print("Book Changed")
-        }
+    @Binding var bindingBook: Book
+    @State var stateBook:Book
+   
+    init(book:Binding<Book>) {
+        _bindingBook = book
+        _stateBook = State(initialValue:book.wrappedValue)
     }
     
     var body: some View {
@@ -95,18 +97,26 @@ struct BookView: View {
                     Spacer()
                     Button("Add Page") {
                         withAnimation {
-                            book.pages.append(Page(content:"New Page"))
+                            let page = Page(content:"New Page")
+                            bindingBook.pages.append(page)
+                            stateBook.pages.append(page)
                         }
                     }
                 }
             ) {
-                ForEach(Array($book.pages.enumerated()), id: \.1.id) { (i, $page) in
-                    NavigationLink("Page \(i): \(page.content)", destination: PageView(page:$page, pageNumber:i))
+                ForEach(Array(stateBook.pages.enumerated()), id: \.1.id) { (i, page) in
+                    
+                    if $bindingBook.pages.count > i {
+                        let pageBinding:Binding<Page> = $bindingBook.pages[i]
+                        let page = pageBinding.wrappedValue
+                        
+                        NavigationLink("Page \(i): \(page.content)", destination: PageView(page:pageBinding, pageNumber:i))
+                    }
                 }
             }
         }
         .listStyle(GroupedListStyle())
-        .navigationBarTitle(book.title)
+        .navigationBarTitle(bindingBook.title)
     }
 }
 
