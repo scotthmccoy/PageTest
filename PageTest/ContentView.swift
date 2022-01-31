@@ -15,14 +15,14 @@ struct Shelf : Identifiable {
   var books: [Book]
 }
 
-struct Book : Identifiable {
+struct Book : Identifiable, Equatable {
   var id = UUID()
   var title: String
 
   var pages: [Page]
 }
 
-struct Page : Identifiable {
+struct Page : Identifiable, Equatable {
   var id = UUID()
   var content: String
 }
@@ -107,6 +107,7 @@ struct BookView: View {
         }
         .listStyle(GroupedListStyle())
         .navigationBarTitle(book.title)
+        .animation(.default, value: book.pages)
     }
 }
 
