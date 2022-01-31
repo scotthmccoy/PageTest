@@ -83,6 +83,7 @@ struct UserView: View {
 
         }
         .navigationTitle("Child View")
+        .animation(.default, value: user.times)
     }
 }
 
