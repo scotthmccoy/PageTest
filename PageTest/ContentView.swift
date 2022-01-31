@@ -62,7 +62,9 @@ struct ShelfView: View {
                     Text("Books")
                     Spacer()
                     Button("Add") {
-                        shelf.books.append(Book(title:"New Book", pages:[]))
+                        withAnimation {
+                            shelf.books.append(Book(title:"New Book", pages:[]))
+                        }
                     }
                 }
             ) {
@@ -92,7 +94,9 @@ struct BookView: View {
                     Text("Pages")
                     Spacer()
                     Button("Add Page") {
-                        book.pages.append(Page(content:"New Page"))
+                        withAnimation {
+                            book.pages.append(Page(content:"New Page"))
+                        }
                     }
                 }
             ) {
