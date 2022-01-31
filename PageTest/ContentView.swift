@@ -36,7 +36,7 @@ struct PageTestApp: App {
             NavigationView {
                 ShelfView(Shelf(title:"My Shelf", books:[]))
             }
-            .navigationViewStyle(.stack)
+            //.navigationViewStyle(.stack)
         }
     }
 }
@@ -81,11 +81,7 @@ struct ShelfView: View {
 
 //MARK: BookView
 struct BookView: View {
-    @Binding var book: Book {
-        didSet {
-            print("Book Changed")
-        }
-    }
+    @Binding var book: Book
     
     var body: some View {
         List {
@@ -100,8 +96,11 @@ struct BookView: View {
                     }
                 }
             ) {
-                ForEach(Array($book.pages.enumerated()), id: \.1.id) { (i, $page) in
-                    NavigationLink("Page \(i): \(page.content)", destination: PageView(page:$page, pageNumber:i))
+                ForEach($book.pages.indices, id:\.self) { index in
+                    Text("Page \(index): \(book.pages[index].content)")
+                }
+                .onDelete { offsets in
+                    book.pages.remove(atOffsets: offsets)
                 }
             }
         }
