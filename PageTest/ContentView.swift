@@ -70,6 +70,7 @@ struct ShelfView: View {
             ) {
                 ForEach(Array(shelf.books.enumerated()), id: \.1.id) { (i, book) in
                     NavigationLink("Book \(i) - \(book.pages.count) pages", destination: BookView(book: self.$shelf.books[i]))
+                        .isDetailLink(false)
                 }
             }
         }
@@ -79,6 +80,7 @@ struct ShelfView: View {
 }
 
 
+//MARK: HiddenNavLink
 class HiddenNavLinkViewModel<Model> : ObservableObject {
     @Published var model:Binding<Model>?
     @Published var navigationLinkIsActive = false
@@ -89,7 +91,6 @@ struct HiddenNavLink<Model, DestinationView : View> : View {
     @ViewBuilder var destinationViewBuilder: (Binding<Model>) -> DestinationView
     
     var body : some View {
-        print("Test")
         return VStack {
             //The Navlink doesn't exist until populated
             if let model = hiddenNavLinkViewModel.model {
@@ -99,6 +100,7 @@ struct HiddenNavLink<Model, DestinationView : View> : View {
                 {
                     EmptyView()
                 }
+                .isDetailLink(false)
             }
         }.hidden()
     }
@@ -112,9 +114,6 @@ struct HiddenNavLink<Model, DestinationView : View> : View {
             }
         }
     }
-    
-    
-
 }
 
 //MARK: BookView
@@ -124,9 +123,6 @@ struct BookView: View {
             print("Book Changed")
         }
     }
-    
-    @State var selectedPage:Binding<Page>?
-    @State var navigationLinkIsActive = false
     
     var hiddenNavLink = HiddenNavLink<Page, PageView>(destinationViewBuilder:{ page in
         PageView(page:page, pageNumber:0)
@@ -147,8 +143,6 @@ struct BookView: View {
             ) {
 
                 hiddenNavLink
-                //NavigationLink("\(page.content)", destination: PageView(page:$page, pageNumber:0))
-                    
                 ForEach($book.pages) { $page in
                     hiddenNavLink.makeButton(text:page.content, model:$page)
                 }
@@ -157,6 +151,7 @@ struct BookView: View {
         .animation(.default, value: book.pages)
         .listStyle(GroupedListStyle())
         .navigationBarTitle(book.title)
+        .navigationViewStyle(.stack)
     }
 }
 
