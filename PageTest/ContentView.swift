@@ -87,39 +87,23 @@ struct BookView: View {
         }
     }
     
-    @State var selectedPage:Binding<Page>?
-    @State var navigationLinkIsActive = false
-    
     var body: some View {
-        List {
-            Section(header:
-                HStack {
-                    Text("Pages")
-                    Spacer()
-                    Button("Add Page") {
-                        withAnimation {
-                            book.pages.append(Page(content:"New Page"))
+        VStack {
+            lnkPageView
+            List {
+                Section(header:
+                    HStack {
+                        Text("Pages")
+                        Spacer()
+                        Button("Add Page") {
+                            withAnimation {
+                                book.pages.append(Page(content:"New Page"))
+                            }
                         }
                     }
-                }
-            ) {
-                
-                VStack {
-                    //The Navlink doesn't exist until populated
-                    if let selectedPage = selectedPage {
-                        NavigationLink(destination: PageView(page: selectedPage, pageNumber:0), isActive:$navigationLinkIsActive){ EmptyView() }
-                    }
-                }.hidden()
-                
-                
-                //NavigationLink("\(page.content)", destination: PageView(page:$page, pageNumber:0))
-                    
-                ForEach($book.pages) { $page in
-                    Button("\(page.content)") {
-                        self.selectedPage = $page
-                        DispatchQueue.main.async {
-                            self.navigationLinkIsActive = true
-                        }
+                ) {
+                    ForEach($book.pages) { $page in
+                        btnPageView($page)
                     }
                 }
             }
@@ -127,6 +111,33 @@ struct BookView: View {
         .animation(.default, value: book.pages)
         .listStyle(GroupedListStyle())
         .navigationBarTitle(book.title)
+    }
+    
+    
+    // Page View Link
+    @State var selectedPage:Binding<Page>?
+    @State var navigationLinkIsActive = false
+    
+    var lnkPageView : some View {
+        VStack {
+            //The Navlink doesn't exist until populated
+            if let selectedPage = selectedPage {
+                NavigationLink(destination: PageView(page:selectedPage, pageNumber:0), isActive:$navigationLinkIsActive) {
+                    EmptyView()
+                }
+            }
+        }
+        .frame(width: 0, height: 0)
+        .hidden()
+    }
+    
+    func btnPageView(_ page:Binding<Page>) -> some View {
+        Button("\(page.wrappedValue.content)") {
+            self.selectedPage = page
+            DispatchQueue.main.async {
+                self.navigationLinkIsActive = true
+            }
+        }
     }
 }
 
