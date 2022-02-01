@@ -87,6 +87,9 @@ struct BookView: View {
         }
     }
     
+    @State var selectedPage:Binding<Page>?
+    @State var navigationLinkIsActive = false
+    
     var body: some View {
         List {
             Section(header:
@@ -100,15 +103,28 @@ struct BookView: View {
                     }
                 }
             ) {
-                ForEach(Array($book.pages.enumerated()), id: \.1.id) { (i, $page) in
-                    NavigationLink("Page \(i): \(page.content)", destination: PageView(page:$page, pageNumber:i))
+                
+                VStack {
+                    //The Navlink doesn't exist until populated
+                    if let selectedPage = selectedPage {
+                        NavigationLink(destination: PageView(page: selectedPage, pageNumber:0), isActive:$navigationLinkIsActive){ EmptyView() }
+                    }
+                }.hidden()
+                
+                
+                //NavigationLink("\(page.content)", destination: PageView(page:$page, pageNumber:0))
+                    
+                ForEach($book.pages) { $page in
+                    Button("\(page.content)") {
+                        self.selectedPage = $page
+                        DispatchQueue.main.async {
+                            self.navigationLinkIsActive = true
+                        }
+                    }
                 }
             }
         }
         .animation(.default, value: book.pages)
-        //.animation(.default, value:book)    //Only animates the first addition.
-        //.animation(Animation.easeInOut(duration: 1)) //Deprecated. Forces a weird long animation when displayed but *does* animate row additions.
-        
         .listStyle(GroupedListStyle())
         .navigationBarTitle(book.title)
     }
