@@ -34,8 +34,9 @@ struct PageTestApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationView {
-                ShelfView(Shelf(title:"My Shelf", books:[]))
+                ShelfView(shelf:Shelf(title:"My Shelf", books:[]))
             }
+            //NOTE: Need this to prevent the PageView from popping when editing Page.content
             .navigationViewStyle(.stack)
         }
     }
@@ -44,18 +45,9 @@ struct PageTestApp: App {
 
 //MARK: ShelfView
 struct ShelfView: View {
-    @State private var shelf: Shelf {
-        didSet {
-            print("Shelf Changed")
-        }
-    }
-
-    init(_ shelf: Shelf) {
-        _shelf = State<Shelf>(initialValue: shelf)
-    }
+    @State var shelf: Shelf
 
     var body: some View {
-
         List {
             Section(header:
                 HStack {
@@ -81,12 +73,8 @@ struct ShelfView: View {
 
 //MARK: BookView
 struct BookView: View {
-    @Binding var book: Book {
-        didSet {
-            print("Book Changed")
-        }
-    }
-    
+    @Binding var book: Book
+
     var body: some View {
         VStack {
             lnkPageView
@@ -96,6 +84,7 @@ struct BookView: View {
                         Text("Pages")
                         Spacer()
                         Button("Add Page") {
+                            //NOTE: Need this to allow for animation of appending pages
                             withAnimation {
                                 book.pages.append(Page(content:"New Page"))
                             }
@@ -108,13 +97,14 @@ struct BookView: View {
                 }
             }
         }
+        //NOTE: Need this to allow for animation of appending pages
         .animation(.default, value: book.pages)
         .listStyle(GroupedListStyle())
         .navigationBarTitle(book.title)
     }
     
     
-    // Page View Link
+    //MARK: Nav Link to PageView
     @State var selectedPage:Binding<Page>?
     @State var navigationLinkIsActive = false
     
@@ -132,22 +122,32 @@ struct BookView: View {
     }
     
     func btnPageView(_ page:Binding<Page>) -> some View {
-        Button("\(page.wrappedValue.content)") {
+        Button(action: {
             self.selectedPage = page
             DispatchQueue.main.async {
                 self.navigationLinkIsActive = true
             }
-        }
+        }, label: {
+            ZStack {
+                HStack {
+                    Text("\(page.wrappedValue.content)")
+                        .foregroundColor(.black)
+                    Spacer()
+                    Image(systemName:"chevron.forward")
+                        .resizable()
+                        .padding(6)
+                        .frame(width: 19, height: 23)
+                        .foregroundColor(.gray)
+                }
+            }
+        })
     }
 }
 
 //MARK: PageView
 struct PageView: View {
-    @Binding var page:Page {
-        didSet {
-            print("Page Changed")
-        }
-    }
+    @Binding var page:Page
+
     let pageNumber:Int
     
     var body: some View {
