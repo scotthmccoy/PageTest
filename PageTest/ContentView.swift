@@ -8,33 +8,24 @@
 import SwiftUI
 
 //MARK: Model
-struct Shelf : Identifiable {
+struct Node : Identifiable {
   var id = UUID()
-  var title: String
+  var name: String
 
-  var books: [Book]
+  var children: [Node]
 }
 
-struct Book : Identifiable, Equatable {
-  var id = UUID()
-  var title: String
-
-  var pages: [Page]
-}
-
-struct Page : Identifiable, Equatable {
-  var id = UUID()
-  var content: String
-}
 
 
 //MARK: App
 @main
 struct PageTestApp: App {
+    @State var node = Node(name:"Root Node", children:[])
+    
     var body: some Scene {
         WindowGroup {
             NavigationView {
-                ShelfView(shelf:Shelf(title:"My Shelf", books:[]))
+                NodeView(node:$node)
             }
             //NOTE: Need this to prevent the PageView from popping when editing Page.content
             .navigationViewStyle(.stack)
@@ -44,32 +35,38 @@ struct PageTestApp: App {
 
 
 //MARK: ShelfView
-struct ShelfView: View {
-    @State var shelf: Shelf
+struct NodeView: View {
+    
+    @Binding var node:Node
 
     var body: some View {
         List {
+            Section("Name") {
+                TextField("", text: $node.name)
+            }
             Section(header:
                 HStack {
-                    Text("Books")
+                    Text("Children")
                     Spacer()
                     Button("Add") {
                         withAnimation {
-                            shelf.books.append(Book(title:"New Book", pages:[]))
+                            let name = String(UUID().uuidString.prefix(5))
+                            node.children.append(Node(name: name, children: []))
                         }
                     }
                 }
             ) {
-                ForEach(Array(shelf.books.enumerated()), id: \.1.id) { (i, book) in
-                    NavigationLink("Book \(i) - \(book.pages.count) pages", destination: BookView(book: self.$shelf.books[i]))
+                ForEach($node.children) { $child in
+                    NavigationLink("\(child.name), \(child.children.count) children", destination: NodeView(node: $child))
                 }
             }
         }
         .listStyle(GroupedListStyle())
-        .navigationBarTitle(shelf.title)
+        .navigationBarTitle(node.name)
     }
 }
 
+/*
 
 //MARK: BookView
 struct BookView: View {
@@ -160,3 +157,5 @@ struct PageView: View {
         .navigationBarTitle("Page \(pageNumber)")
     }
 }
+
+*/
